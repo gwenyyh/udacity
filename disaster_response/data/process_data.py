@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import sys
 
 from sqlalchemy import create_engine
@@ -34,6 +35,9 @@ def clean_data(df):
     # replace categories column in df with new category columns
     df.drop("categories", axis=1, inplace=True)
     df = pd.concat([df, categories], axis=1)
+
+    # convert 2s in related column to 1s
+    df["related"] = np.where(df["related"]== 2, 1, df["related"])
 
     # remove duplicates
     df.drop(["id", "original"], axis=1, inplace=True)
