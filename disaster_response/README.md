@@ -29,3 +29,4 @@ On the web app you can classify a message (text) as well as explore a little abo
 - `app` folder: .html files and python script that wraps up the web app
 - `data` folder: raw data and python script that preprocesses the data for the training
 - `models` folder: saved models and python script that trains, evaluates and saves the model. `random_forest.pkl` is the model we use for the web app for its better performance. 
+
