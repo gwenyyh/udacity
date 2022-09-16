@@ -33,23 +33,20 @@ On the web app you can classify a message (text) as well as explore a little abo
 - `data` folder: raw data and python script that preprocesses the data for the training
 - `models` folder: saved models and python script that trains, evaluates and saves the model. `random_forest.pkl` is the model we use for the web app for its better performance. 
 
-- app
+- app  
+    | - template  
+    | |- master.html # main page of web app  
+    | |- go.html # classification result page of web app  
+    |- run.py # Flask file that runs app  
 
-    | - template
-    | |- master.html # main page of web app
-    | |- go.html # classification result page of web app
-    |- run.py # Flask file that runs app
+- data  
+    |- disaster_categories.csv # data to process  
+    |- disaster_messages.csv # data to process  
+    |- process_data.py  
+    |- InsertDatabaseName.db # database to save clean data to  
 
-- data
-
-    |- disaster_categories.csv # data to process
-    |- disaster_messages.csv # data to process
-    |- process_data.py
-    |- InsertDatabaseName.db # database to save clean data to
-
-- models
-
-    |- train_classifier.py
-    |- classifier.pkl # saved model
+- models  
+    |- train_classifier.py  
+    |- classifier.pkl # saved model  
 
 - README.md
