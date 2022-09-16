@@ -28,11 +28,6 @@ On the web app you can classify a message (text) as well as explore a little abo
 4. Go to the url returned in the command line
 
 ### Files:
-
-- `app` folder: .html files and python script that wraps up the web app
-- `data` folder: raw data and python script that preprocesses the data for the training
-- `models` folder: saved models and python script that trains, evaluates and saves the model. `random_forest.pkl` is the model we use for the web app for its better performance. 
-
 - app  
     | - template  
     | |- master.html # main page of web app  
@@ -42,11 +37,16 @@ On the web app you can classify a message (text) as well as explore a little abo
 - data  
     |- disaster_categories.csv # data to process  
     |- disaster_messages.csv # data to process  
-    |- process_data.py  
-    |- InsertDatabaseName.db # database to save clean data to  
+    |- process_data.py # script to process the raw data into clean data  
+    |- DisasterResponse.db # database to save clean data to  
 
 - models  
-    |- train_classifier.py  
-    |- classifier.pkl # saved model  
+    |- train_classifier.py  # script to train, evaluate and save the model  
+    |- random_forest.pkl # saved model with random forest and the one used in the web app  
+    |- decision_tree.pkl # saved model with decision tree 
+    |- kneighbors.pkl # saved model with k nearest neighbors   
+    |- logistic_regression.pkl # saved model with logistic regression  
+    |- model_with_genre.pkl # saved model with random forest and feature genre  
 
+- explore_notebook.ipynb # notebook with exploration work
 - README.md
