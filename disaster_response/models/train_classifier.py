@@ -5,13 +5,11 @@ from nltk.stem import WordNetLemmatizer
 
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.pipeline import Pipeline
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.multioutput import MultiOutputClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report
 from sqlalchemy import create_engine
-from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import OneHotEncoder
 
 import sys
 import pandas as pd
@@ -65,26 +63,31 @@ def tokenize(text):
 def build_model():
     """
     input: None
-    Output: model pipeline
+    Output: model pipeline for random forest model
     """
-    pipeline = Pipeline([
-        ("vect", CountVectorizer(
-            tokenizer=tokenize, 
-            max_df=0.5,
-            ngram_range=(1, 1),
-            max_features=None
-        )),
-        ("tfidf", TfidfTransformer(use_idf=True)),
-        ("clf", MultiOutputClassifier(
-            estimator=RandomForestClassifier(
-                n_estimators=200,
-                max_features=None,
-                random_state=42
-            )
-        ))
-    ])
 
-    return pipeline
+    # build pipeline
+    pipeline = Pipeline(
+        [
+            ("vect", CountVectorizer(tokenizer=tokenize, max_df=0.5)),
+            ("tfidf", TfidfTransformer()),
+            (
+                "clf",
+                MultiOutputClassifier(
+                    estimator=RandomForestClassifier(random_state=42)
+                ),
+            ),
+        ]
+    )
+    parameters = {
+        "clf__estimator__n_estimators": [50, 100, 200],
+        "clf__estimator__max_features": ["sqrt", "log2", None],
+        "clf__estimator__min_samples_split": [2, 3, 4],
+    }
+
+    cv = GridSearchCV(pipeline, param_grid=parameters)
+
+    return cv
 
 
 def evaluate_model(model, X_test, y_test, category_names: list):
@@ -103,9 +106,9 @@ def evaluate_model(model, X_test, y_test, category_names: list):
 
     for column in y_test:
         print(column)
-        print(classification_report(
-            y_test[column], y_pred[column], zero_division=0
-        ))
+        print(
+            classification_report(y_test[column], y_pred[column], zero_division=0)
+        )
 
 
 def save_model(model, model_filepath: str):
@@ -114,7 +117,7 @@ def save_model(model, model_filepath: str):
 
 
 def main():
-    '''execute if main'''
+    """execute if main"""
     if len(sys.argv) == 3:
         database_filepath, model_filepath = sys.argv[1:]
         print("Loading data...\n    DATABASE: {}".format(database_filepath))
