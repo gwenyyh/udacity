@@ -1,2 +1,4 @@
 .DS_Store
 */.DS_Store
+.udacity_venv
+disaster_response/models/model_selection.pkl
