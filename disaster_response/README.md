@@ -7,9 +7,12 @@ The training dataset from [Figure Eight](https://appen.com/) uses real messages 
 On the web app you can classify a message (text) as well as explore a little about the training set.
 
 ### Instructions to run:
-1. Go to the `disaster_response` directory to run the following commands for this project.
+1. Go to the `disaster_response` directory to run the following commands for this project:
+
+    `cd disaster_response`
 
 2. To ensure you have correct environment to run the project, please run the following to install all the packages needed: 
+
     `pip install -r requirements.txt`
 
 2. Run the following commands to set up your database and model:
