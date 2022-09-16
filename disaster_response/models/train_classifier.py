@@ -1,23 +1,24 @@
 # import libraries
-import pandas as pd
-import pickle
-import nltk
-nltk.download(['stopwords','punkt', 'wordnet', 'averaged_perceptron_tagger'])
-
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.pipeline import Pipeline
-from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.model_selection import train_test_split
 from sklearn.multioutput import MultiOutputClassifier
-from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report
 from sqlalchemy import create_engine
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import OneHotEncoder
 
 import sys
+import pandas as pd
+import pickle
+import nltk
+
+nltk.download(["stopwords", "wordnet"])
 
 
 def load_data(database_filepath: str):
@@ -32,13 +33,21 @@ def load_data(database_filepath: str):
 
     engine = create_engine(database_filepath)
     df = pd.read_sql_table("tbl_yyh_disaster_response_clean_data", engine)
-    X = df.head(100).message.values
-    y = df.head(100).drop(['message', 'genre'], axis=1).values
+    X = df.head(100)[["message", "genre"]]
+    y = df.head(100).drop(["message", "genre"], axis=1).values
     category_names = list(df.columns)[2:]
     return X, y, category_names
 
 
 def tokenize(text):
+    """tokenizes text into lemmatized, stripped, lowercased tokens
+    without stopwords
+
+    input:
+        text: str - the text to be tokenized
+    output:
+        clean_tokens: list - of tokens
+    """
     tokens = word_tokenize(text)
     stop_words = stopwords.words("english")
     lemmatizer = WordNetLemmatizer()
@@ -52,38 +61,30 @@ def tokenize(text):
     return clean_tokens
 
 
+# build the final model with external feature 'genre'
 def build_model():
     """
     input: None
     Output: model pipeline
     """
+    pipeline = Pipeline([
+        ("vect", CountVectorizer(
+            tokenizer=tokenize, 
+            max_df=0.5,
+            ngram_range=(1, 1),
+            max_features=None
+        )),
+        ("tfidf", TfidfTransformer(use_idf=True)),
+        ("clf", MultiOutputClassifier(
+            estimator=RandomForestClassifier(
+                n_estimators=200,
+                max_features=None,
+                random_state=42
+            )
+        ))
+    ])
 
-    # build pipeline
-    pipeline = Pipeline(
-        [
-            ("vect", CountVectorizer(tokenizer=tokenize)),
-            ("tfidf", TfidfTransformer()),
-            (
-                "clf",
-                MultiOutputClassifier(
-                    estimator=RandomForestClassifier(random_state=42)
-                ),
-            ),
-        ]
-    )
-
-    parameters = {
-        "vect__ngram_range": ((1, 1), (1, 2)),
-        "vect__max_df": (0.5, 1.0),
-        "vect__max_features": (None, 5000),
-        "tfidf__use_idf": (True, False),
-        "clf__estimator__n_estimators": [50, 100],
-        "clf__estimator__min_samples_split": [2, 3, 4],
-    }
-
-    cv = GridSearchCV(pipeline, param_grid=parameters)
-
-    return cv
+    return pipeline
 
 
 def evaluate_model(model, X_test, y_test, category_names: list):
@@ -102,16 +103,18 @@ def evaluate_model(model, X_test, y_test, category_names: list):
 
     for column in y_test:
         print(column)
-        print(classification_report(y_test[column], y_pred[column]))
+        print(classification_report(
+            y_test[column], y_pred[column], zero_division=0
+        ))
 
 
 def save_model(model, model_filepath: str):
-    """saves model as pickle file to filepath
-    """
+    """saves model as pickle file to filepath"""
     pickle.dump(model, open(model_filepath, "wb"))
 
 
 def main():
+    '''execute if main'''
     if len(sys.argv) == 3:
         database_filepath, model_filepath = sys.argv[1:]
         print("Loading data...\n    DATABASE: {}".format(database_filepath))
@@ -130,7 +133,7 @@ def main():
         evaluate_model(model, X_test, Y_test, category_names)
 
         print("Saving model...\n    MODEL: {}".format(model_filepath))
-        save_model(model, model_filepath)
+        # save_model(model, model_filepath)
 
         print("Trained model saved!")
 
