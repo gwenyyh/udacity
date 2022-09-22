@@ -15,17 +15,17 @@ On the web app you can classify a message (text) as well as explore a little abo
 
     `pip install -r requirements.txt`
 
-2. Run the following commands to set up your database and model:
+3. Run the following commands to set up your database and model:
 
     - To run ETL pipeline that cleans data and stores in database
         `python data/process_data.py data/disaster_messages.csv data/disaster_categories.csv sqlite:///DisasterResponse.db`
     - To run ML pipeline that trains classifier and saves the model
         `python models/train_classifier.py sqlite:///DisasterResponse.db models/random_forest.pkl`
 
-3. Run the following command to run your web app:
+4. Run the following command to run your web app:
     `python app/run.py`
 
-4. Go to the url returned in the command line
+5. Go to the url returned in the command line
 
 ### Files:
 - app  
