@@ -26,7 +26,8 @@ The results will be shown in a web app.
     |- run.py # Flask file that runs app  
 
 - data  
-    |- mini_sparkify_event_data.json # raw dataset that contains event data of customer visits for a music streaming company. 
+    |- mini_sparkify_event_data1.json # raw dataset part 1 due to size limit in git repo. It contains event data of customer visits for a music streaming company. 
+    |- mini_sparkify_event_data2.json # raw dataset pat 2 
 
 - gbt # saved Pyspark model, which should be read with entire folder 
 - Sparkify.ipynb # notebook with major work
