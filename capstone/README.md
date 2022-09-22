@@ -2,12 +2,12 @@
 
 The main goal of this project is to perform data manipulation, analysis and make churn predictions with customer data using Pyspark.
 
-The results will be shown in a web app.
+The results will be shown in a web app. The web app makes predictions with the gradient boosted trees algorithm.
 
 ### Instructions to run the web app:
-1. Go to the `disaster_response` directory to run the following commands for this project:
+1. Go to the `capstone` directory to run the following commands for this project:
 
-    `cd disaster_response`
+    `cd capstone`
 
 2. To ensure you have correct environment to run the project, please run the following to install all the packages needed: 
 
