@@ -1,95 +1,86 @@
-import json
-import plotly
-import pandas as pd
-
-from nltk.stem import WordNetLemmatizer
-from nltk.tokenize import word_tokenize
-
+# import libraries
 from flask import Flask, render_template, request
-from plotly.graph_objs import Bar, Box
-import joblib
-from sqlalchemy import create_engine
 
+import pyspark
+from pyspark.sql import SparkSession
+
+from pyspark.ml.tuning import CrossValidatorModel
 
 app = Flask(__name__)
 
-
-def tokenize(text):
-    tokens = word_tokenize(text)
-    lemmatizer = WordNetLemmatizer()
-
-    clean_tokens = []
-    for tok in tokens:
-        clean_tok = lemmatizer.lemmatize(tok).lower().strip()
-        clean_tokens.append(clean_tok)
-
-    return clean_tokens
-
-
-# load data
-engine = create_engine("sqlite:///DisasterResponse.db")
-df = pd.read_sql_table("tbl_yyh_disaster_response_clean_data", engine)
+# create spark session
+spark = SparkSession.builder.master("local")\
+    .appName("Capstone").getOrCreate()
 
 # load model
-model = joblib.load("models/random_forest.pkl")
+model = CrossValidatorModel.read().load("gbt")
 
+# feature columns needed for the model to predict
+feature_cols = [
+    "gender",
+    "NextSong",
+    "Downgrade",
+    "Upgrade",
+    "Thumbs Down",
+    "Thumbs Up",
+    "Submit Upgrade",
+    "Add Friend",
+    "Add to Playlist",
+    "Roll Advert",
+    "free",
+    "paid"
+]
 
-# index webpage displays cool visuals and receives user input text for model
+# index webpage that takes user input
 @app.route("/")
 @app.route("/index")
 def index():
 
-    # extract data needed for visuals
-    cat_counts = df.sum(numeric_only=True).sort_values(ascending=False)
-    cat_names = list(cat_counts.index)
-    word_counts = df.message.apply(lambda x: len(x.split()))
-    train_size = df.shape[0]
-    # create visuals
-    graphs = [
-        {
-            "data": [Bar(x=cat_names, y=cat_counts)],
-            "layout": {
-                "title": "Distribution of Message Categories",
-                "yaxis": {"title": "Count"},
-                "xaxis": {"title": "Category"},
-            },
-        },
-        {
-            "data": [Box(x=word_counts)],
-            "layout": {
-                "title": "Distribution of Message Word Counts",
-                "yaxis": {"title": ""},
-                "xaxis": {"title": "Word Count"},
-            },
-        },
-    ]
-
-    # encode plotly graphs in JSON
-    ids = ["graph-{}".format(i) for i, _ in enumerate(graphs)]
-    graphJSON = json.dumps(graphs, cls=plotly.utils.PlotlyJSONEncoder)
-
     # render web page with plotly graphs
     return render_template(
-        "master.html",
-        ids=ids,
-        graphJSON=graphJSON,
-        train_size=f"{train_size:,}"
+        "master.html"
     )
 
 
 # web page that handles user query and displays model results
 @app.route("/go")
 def go():
-    # save user input in query
-    query = request.args.get("query", "")
+    # get user input and make predictions
+    feature_vals = []
+    features = [
+        "feature1", "feature2", "feature3",
+        "feature4", "feature5", "feature6",
+        "feature7", "feature8", "feature9",
+        "feature10", "feature11", "feature12"
+    ]
+    for f in features:
+        feature_vals.append(
+            int(request.args.get(f))
+        )
+    data = [(
+        feature_vals[0],
+        feature_vals[1],
+        feature_vals[2],
+        feature_vals[3],
+        feature_vals[4],
+        feature_vals[5],
+        feature_vals[6],
+        feature_vals[7],
+        feature_vals[8],
+        feature_vals[9],
+        feature_vals[10],
+        feature_vals[11]
+    )]
+    input_df = spark.createDataFrame(data, feature_cols)
 
     # use model to predict classification for query
-    classification_labels = model.predict([query])[0]
-    classification_results = dict(zip(df.columns[4:], classification_labels))
+    pred = model.transform(input_df)
+    result = "yes" if pred.select("prediction").collect()[0][0] == 1 else "no"
+    prob = pred.select("probability").collect()[0][0][0]
 
     # This will render the go.html Please see that file.
     return render_template(
-        "go.html", query=query, classification_result=classification_results
+        "go.html", result=result, prob=prob
     )
 
 
